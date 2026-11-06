@@ -85,6 +85,35 @@ service cloud.firestore {
       match /issueReports/{reportId} {
         allow read, write: if isOwner(userId) && isValidId(reportId);
       }
+
+      // Opening balances subcollection
+      match /openingBalances/{obId} {
+        allow read, write: if isOwner(userId) && isValidId(obId);
+      }
+
+      // Smart Settlements subcollection (supports both smartSettlements and settlements aliases)
+      match /smartSettlements/{settlementId} {
+        allow read, write: if isOwner(userId) && isValidId(settlementId);
+      }
+      match /settlements/{settlementId} {
+        allow read, write: if isOwner(userId) && isValidId(settlementId);
+      }
+    }
+
+    // Public Settlements (Read-only projection for shared links)
+    match /publicSettlements/{shareToken} {
+      allow get: if true;
+      allow list: if false;
+      allow write: if isSignedIn() && (
+        resource == null || resource.data.creatorUserId == request.auth.uid
+      );
+    }
+
+    // Public Person Shares (Read-only ledger projection for shared peer debt)
+    match /publicPersonShares/{shareToken} {
+      allow get: if true;
+      allow list: if false;
+      allow write: if isSignedIn();
     }
   }
 }
